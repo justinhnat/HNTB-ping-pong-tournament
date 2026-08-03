@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>HNTB | Tournament Bracket</title>
+<style>
+  :root {
+    --hntb-black: #000000;
+    --hntb-orange: #F26522;
+    --hntb-white: #ffffff;
+    --hntb-gray: #6d6e71;
+  }
+  * { box-sizing: border-box; }
+  html, body {
+    margin: 0;
+    padding: 0;
+    background: var(--hntb-white);
+    color: var(--hntb-black);
+    font-family: Arial, Helvetica, sans-serif;
+  }
+  #header {
+    text-align: center;
+    margin: 28px 0 4px 0;
+  }
+  #header .brand {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 26px;
+    font-weight: 900;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+  }
+  #header .brand .chip {
+    width: 16px;
+    height: 16px;
+    background: var(--hntb-orange);
+    display: inline-block;
+  }
+  .subtitle {
+    text-align: center;
+    font-size: 12px;
+    color: var(--hntb-gray);
+    margin-bottom: 18px;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+  }
+  #scrollWrap {
+    width: 100%;
+    overflow-x: auto;
+    padding-bottom: 30px;
+  }
+  #bracket {
+    position: relative;
+    margin: 0 auto;
+  }
+  .col-label {
+    position: absolute;
+    text-align: center;
+    font-size: 12px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    color: var(--hntb-black);
+  }
+  .col-label .rule {
+    display: block;
+    width: 32px;
+    height: 3px;
+    background: var(--hntb-orange);
+    margin: 4px auto 0 auto;
+  }
+  .box {
+    position: absolute;
+    background: var(--hntb-white);
+    border: 2px solid var(--hntb-black);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    padding: 0 6px;
+    font-size: 13px;
+    font-weight: 600;
+    line-height: 1.15;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+  }
+  .box.tbd {
+    border-color: var(--hntb-black);
+  }
+  .box.playin-winner {
+    color: var(--hntb-gray);
+    font-weight: 400;
+    font-style: italic;
+    font-size: 11px;
+    border-color: var(--hntb-gray);
+    border-style: dashed;
+  }
+  .box.champion {
+    border-width: 3px;
+    border-color: var(--hntb-orange);
+    font-size: 15px;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    color: var(--hntb-black);
+    box-shadow: 0 0 0 4px rgba(242, 101, 34, 0.12);
+  }
+  .game-tag {
+    position: absolute;
+    font-size: 10px;
+    color: var(--hntb-orange);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+  .date-time {
+    position: absolute;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 8px;
+    font-weight: 700;
+    color: var(--hntb-gray);
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+    padding: 0 4px;
+  }
+  .date-time .dt-field {
+    display: flex;
+    align-items: center;
+    gap: 3px;
+    flex: 1;
+  }
+  .date-time .dt-blank {
+    flex: 1;
+    height: 1px;
+    background: #cccccc;
+    margin-left: 3px;
+  }
+  svg.lines line {
+    stroke: var(--hntb-black);
+    stroke-width: 2;
+  }
+  svg.lines {
+    position: absolute;
+    top: 0;
+    left: 0;
+  }
+</style>
+</head>
+<body>
+
+<div id="header">
+  <span class="brand"><span class="chip"></span>HNTB</span>
+</div>
+<div class="subtitle">19-Team Single Elimination Bracket</div>
+
+<div id="scrollWrap">
+  <div id="bracket"></div>
+</div>
+
+<script>
+/* =========================================================
+   EDIT ONLY THIS ARRAY.
+   Must contain EXACTLY 19 team names, in this order:
+     - teams[0..5]   -> the 3 Play-In games (pairs: 0v1, 2v3, 4v5)
+     - teams[6..18]  -> the 13 teams that get a bye straight
+                        into the Round of 16
+   Save the file and refresh (or use VS Code's Live Server
+   extension for auto-refresh on save) to see it redraw.
+   ========================================================= */
+const teams = [
+  "Player 1",
+  "Player 2",
+  "Player 3",
+  "Player 4",
+  "Player 5",
+  "Player 6",
+  "Player 7",
+  "Player 8",
+  "Player 9",
+  "Player 10",
+  "Player 11",
+  "Player 12",
+  "Player 13",
+  "Player 14",
+  "Player 15",
+  "Player 16",
+  "Player 17",
+  "Player 18",
+  "Player 19"
+];
+
+/* =========================================================
+   EDIT THIS TOO if you want.
+   Sets the date/time text shown under every box in a round.
+   Everyone who loads this page sees whatever is typed here —
+   there's no separate database, the page IS the source of truth.
+   ========================================================= */
+const schedule = {
+  playIn:        "8/15 \u2022 6:00 PM",
+  roundOf16:     "8/16 \u2022 10:00 AM",
+  quarterfinals: "8/16 \u2022 2:00 PM",
+  semifinals:    "8/17 \u2022 12:00 PM",
+  championship:  "8/17 \u2022 5:00 PM"
+};
+
+/* ========================= LAYOUT CONSTANTS ========================= */
+const BOX_W = 170;
+const BOX_H = 40;
+const DT_H = 12;             // height of the blank date/time strip under each box
+const DT_GAP = 3;            // gap between a box and its date/time strip
+const COL_GAP = 70;          // empty space between columns used for connectors
+const ROW_SPACING = 110;     // vertical distance between adjacent R16 slot centers (per side)
+const PLAYIN_OFFSET = 34;    // half-distance between the 2 teams in a play-in game
+const TOP_PAD = 70;          // space at top for column labels
+const BOTTOM_PAD = 40;
+const SIDE_PAD = 20;
+const ROWS_PER_SIDE = 8;     // Round of 16 rows on each side (8 + 8 = 16)
+
+// Which of the 16 Round-of-16 slots (0-indexed, combined left-then-right)
+// are filled by play-in winners rather than a bye team.
+// 0-7 = left side rows top-to-bottom, 8-15 = right side rows top-to-bottom.
+const PLAYIN_SLOT_INDICES = [1, 6, 11]; // 2 on the left, 1 on the right
+
+/* ========================= VALIDATE INPUT ========================= */
+if (teams.length !== 19) {
+  document.getElementById('bracket').innerHTML =
+    '<p style="color:red;text-align:center;padding:40px;">' +
+    'This bracket requires exactly 19 team names. Found ' + teams.length + '.' +
+    '</p>';
+  throw new Error('teams array must contain exactly 19 entries');
+}
+
+/* ========================= BUILD DATA MODEL ========================= */
+const playInPairs = [[0, 1], [2, 3], [4, 5]];
+const byeTeams = teams.slice(6); // 13 teams
+
+const combinedSlots = [];
+let byeIdx = 0;
+let playinCount = 0;
+for (let i = 0; i < 16; i++) {
+  if (PLAYIN_SLOT_INDICES.includes(i)) {
+    combinedSlots.push({ type: 'playin', gameIndex: playinCount });
+    playinCount++;
+  } else {
+    combinedSlots.push({ type: 'bye', name: byeTeams[byeIdx] });
+    byeIdx++;
+  }
+}
+const leftSlots = combinedSlots.slice(0, 8);   // left side, rows 0-7
+const rightSlots = combinedSlots.slice(8, 16); // right side, rows 0-7
+
+/* ========================= COORDINATES ========================= */
+// 9 columns: PI-L, R16-L, QF-L, SF-L, CHAMP, SF-R, QF-R, R16-R, PI-R
+const STEP = BOX_W + COL_GAP;
+const colX = [];
+for (let i = 0; i < 9; i++) colX.push(SIDE_PAD + i * STEP);
+const totalWidth = colX[8] + BOX_W + SIDE_PAD;
+
+function rowCenter(i) {
+  return TOP_PAD + i * ROW_SPACING + ROW_SPACING / 2;
+}
+const rowCenters = [];
+for (let i = 0; i < ROWS_PER_SIDE; i++) rowCenters.push(rowCenter(i));
+
+const qfCenters = [];
+for (let j = 0; j < 4; j++) qfCenters.push((rowCenters[2*j] + rowCenters[2*j+1]) / 2);
+
+const sfCenters = [];
+for (let k = 0; k < 2; k++) sfCenters.push((qfCenters[2*k] + qfCenters[2*k+1]) / 2);
+
+const champCenter = (sfCenters[0] + sfCenters[1]) / 2;
+
+const totalHeight = TOP_PAD + ROWS_PER_SIDE * ROW_SPACING + BOTTOM_PAD;
+
+/* ========================= RENDER ========================= */
+const bracket = document.getElementById('bracket');
+bracket.style.width = totalWidth + 'px';
+bracket.style.height = totalHeight + 'px';
+
+let html = '';
+const lines = [];
+
+function addBox(x, y, w, h, text, extraClass) {
+  html += '<div class="box ' + (extraClass || '') + '" style="left:' + x + 'px; top:' + y +
+          'px; width:' + w + 'px; height:' + h + 'px;">' + text + '</div>';
+}
+
+function addDateTime(x, y, w) {
+  html += '<div class="date-time" style="left:' + x + 'px; top:' + y + 'px; width:' + w + 'px;">' +
+            '<span class="dt-field">Date<span class="dt-blank"></span></span>' +
+            '<span class="dt-field">Time<span class="dt-blank"></span></span>' +
+          '</div>';
+}
+
+function addLabel(colIndex, text) {
+  html += '<div class="col-label" style="left:' + colX[colIndex] + 'px; top:20px; width:' + BOX_W +
+          'px;">' + text + '<span class="rule"></span></div>';
+}
+
+// Generic connector: two source y-centers (yA above yB) at xSource,
+// merging into a single target box edge at xTarget. Works in either
+// horizontal direction (left-to-right or right-to-left).
+function addConnector(xSource, yA, yB, xTarget) {
+  const xMid = xSource + (xTarget - xSource) / 2;
+  const yMid = (yA + yB) / 2;
+  lines.push([xSource, yA, xMid, yA]);
+  lines.push([xSource, yB, xMid, yB]);
+  lines.push([xMid, yA, xMid, yB]);
+  lines.push([xMid, yMid, xTarget, yMid]);
+}
+
+/* ---- Column labels ---- */
+addLabel(0, 'Play-In');
+addLabel(1, 'Round of 16');
+addLabel(2, 'Quarterfinals');
+addLabel(3, 'Semifinals');
+addLabel(4, 'Championship');
+addLabel(5, 'Semifinals');
+addLabel(6, 'Quarterfinals');
+addLabel(7, 'Round of 16');
+addLabel(8, 'Play-In');
+
+/* ---- Helper to render one full side ---- */
+function renderSide(slots, side) {
+  // side: 'left' or 'right'
+  const isLeft = side === 'left';
+  const colPI   = isLeft ? colX[0] : colX[8];
+  const colR16  = isLeft ? colX[1] : colX[7];
+  const colQF   = isLeft ? colX[2] : colX[6];
+  const colSF   = isLeft ? colX[3] : colX[5];
+  const colCH   = colX[4];
+
+  // Play-in games for this side
+  slots.forEach((slot, rowIdx) => {
+    if (slot.type !== 'playin') return;
+    const pair = playInPairs[slot.gameIndex];
+    const targetY = rowCenters[rowIdx];
+    const yA = targetY - PLAYIN_OFFSET;
+    const yB = targetY + PLAYIN_OFFSET;
+
+    html += '<div class="game-tag" style="left:' + colPI + 'px; top:' + (yA - BOX_H/2 - 14) +
+            'px; width:' + BOX_W + 'px; text-align:center;">Game ' + (slot.gameIndex + 1) + '</div>';
+
+    addBox(colPI, yA - BOX_H/2, BOX_W, BOX_H, teams[pair[0]]);
+    addBox(colPI, yB - BOX_H/2, BOX_W, BOX_H, teams[pair[1]]);
+    addDateTime(colPI, yB + BOX_H/2 + DT_GAP, BOX_W);
+
+    const src = isLeft ? colPI + BOX_W : colPI;
+    const tgt = isLeft ? colR16 : colR16 + BOX_W;
+    addConnector(src, yA, yB, tgt);
+  });
+
+  // Round of 16 boxes
+  slots.forEach((slot, rowIdx) => {
+    const y = rowCenters[rowIdx];
+    if (slot.type === 'bye') {
+      addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, slot.name);
+    } else {
+      addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, 'Winner &ndash; Game ' + (slot.gameIndex + 1), 'playin-winner');
+    }
+    addDateTime(colR16, y + BOX_H/2 + DT_GAP, BOX_W);
+  });
+
+  // R16 -> QF
+  for (let j = 0; j < 4; j++) {
+    const yA = rowCenters[2*j];
+    const yB = rowCenters[2*j+1];
+    const src = isLeft ? colR16 + BOX_W : colR16;
+    const tgt = isLeft ? colQF : colQF + BOX_W;
+    addConnector(src, yA, yB, tgt);
+    addBox(colQF, qfCenters[j] - BOX_H/2, BOX_W, BOX_H, '', 'tbd');
+    addDateTime(colQF, qfCenters[j] + BOX_H/2 + DT_GAP, BOX_W);
+  }
+
+  // QF -> SF
+  for (let k = 0; k < 2; k++) {
+    const yA = qfCenters[2*k];
+    const yB = qfCenters[2*k+1];
+    const src = isLeft ? colQF + BOX_W : colQF;
+    const tgt = isLeft ? colSF : colSF + BOX_W;
+    addConnector(src, yA, yB, tgt);
+    addBox(colSF, sfCenters[k] - BOX_H/2, BOX_W, BOX_H, '', 'tbd');
+    addDateTime(colSF, sfCenters[k] + BOX_H/2 + DT_GAP, BOX_W);
+  }
+
+  // SF -> Championship
+  {
+    const yA = sfCenters[0];
+    const yB = sfCenters[1];
+    const src = isLeft ? colSF + BOX_W : colSF;
+    const tgt = isLeft ? colCH : colCH + BOX_W;
+    addConnector(src, yA, yB, tgt);
+  }
+}
+
+renderSide(leftSlots, 'left');
+renderSide(rightSlots, 'right');
+
+/* ---- Championship box, centered in the middle ---- */
+const champBoxH = BOX_H * 1.6;
+addBox(colX[4], champCenter - champBoxH/2, BOX_W, champBoxH, 'CHAMPION', 'champion');
+addDateTime(colX[4], champCenter + champBoxH/2 + DT_GAP, BOX_W);
+
+/* ---- Build SVG lines ---- */
+let svg = '<svg class="lines" width="' + totalWidth + '" height="' + totalHeight + '">';
+lines.forEach(l => {
+  svg += '<line x1="' + l[0] + '" y1="' + l[1] + '" x2="' + l[2] + '" y2="' + l[3] + '"></line>';
+});
+svg += '</svg>';
+
+bracket.innerHTML = svg + html;
+</script>
+
+</body>
+</html>
