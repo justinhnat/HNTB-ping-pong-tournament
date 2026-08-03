@@ -199,11 +199,36 @@ const teams = [
    there's no separate database, the page IS the source of truth.
    ========================================================= */
 const schedule = {
-  playIn:        "8/15 \u2022 6:00 PM",
-  roundOf16:     "8/16 \u2022 10:00 AM",
-  quarterfinals: "8/16 \u2022 2:00 PM",
-  semifinals:    "8/17 \u2022 12:00 PM",
-  championship:  "8/17 \u2022 5:00 PM"
+  playIn: [
+    "August 12 • 9:00 AM",
+    "August 12 • 9:30 AM",
+    "August 12 • 10:00 AM"
+  ],
+
+  roundOf16: [
+    "August 12 • 10:30 AM",
+    "August 12 • 11:00 AM",
+    "August 12 • 11:30 AM",
+    "August 12 • 12:00 PM",
+    "August 12 • 12:30 PM",
+    "August 12 • 1:00 PM",
+    "August 12 • 1:30 PM",
+    "August 12 • 2:00 PM"
+  ],
+
+  quarterfinals: [
+    "August 12 • 3:00 PM",
+    "August 12 • 3:30 PM",
+    "August 12 • 4:00 PM",
+    "August 12 • 4:30 PM"
+  ],
+
+  semifinals: [
+    "August 13 • 11:00 AM",
+    "August 13 • 11:30 AM"
+  ],
+
+  championship: "August 13 • 12:00 PM"
 };
 
 /* ========================= LAYOUT CONSTANTS ========================= */
@@ -288,11 +313,12 @@ function addBox(x, y, w, h, text, extraClass) {
           'px; width:' + w + 'px; height:' + h + 'px;">' + text + '</div>';
 }
 
-function addDateTime(x, y, w) {
-  html += '<div class="date-time" style="left:' + x + 'px; top:' + y + 'px; width:' + w + 'px;">' +
-            '<span class="dt-field">Date<span class="dt-blank"></span></span>' +
-            '<span class="dt-field">Time<span class="dt-blank"></span></span>' +
-          '</div>';
+function addDateTime(x, y, w, text = "") {
+  html +=
+    '<div class="date-time" style="left:' + x + 'px; top:' + y +
+    'px; width:' + w + 'px; justify-content:center;">' +
+    text +
+    '</div>';
 }
 
 function addLabel(colIndex, text) {
@@ -346,7 +372,12 @@ function renderSide(slots, side) {
 
     addBox(colPI, yA - BOX_H/2, BOX_W, BOX_H, teams[pair[0]]);
     addBox(colPI, yB - BOX_H/2, BOX_W, BOX_H, teams[pair[1]]);
-    addDateTime(colPI, yB + BOX_H/2 + DT_GAP, BOX_W);
+   addDateTime(
+    colPI,
+    yB + BOX_H/2 + DT_GAP,
+    BOX_W,
+    schedule.playIn[slot.gameIndex]
+);
 
     const src = isLeft ? colPI + BOX_W : colPI;
     const tgt = isLeft ? colR16 : colR16 + BOX_W;
@@ -361,7 +392,12 @@ function renderSide(slots, side) {
     } else {
       addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, 'Winner &ndash; Game ' + (slot.gameIndex + 1), 'playin-winner');
     }
-    addDateTime(colR16, y + BOX_H/2 + DT_GAP, BOX_W);
+   addDateTime(
+    colR16,
+    y + BOX_H/2 + DT_GAP,
+    BOX_W,
+    schedule.roundOf16[rowIdx + (isLeft ? 0 : 4)]
+);
   });
 
   // R16 -> QF
@@ -372,7 +408,12 @@ function renderSide(slots, side) {
     const tgt = isLeft ? colQF : colQF + BOX_W;
     addConnector(src, yA, yB, tgt);
     addBox(colQF, qfCenters[j] - BOX_H/2, BOX_W, BOX_H, '', 'tbd');
-    addDateTime(colQF, qfCenters[j] + BOX_H/2 + DT_GAP, BOX_W);
+ addDateTime(
+    colQF,
+    qfCenters[j] + BOX_H/2 + DT_GAP,
+    BOX_W,
+    schedule.quarterfinals[j]
+);
   }
 
   // QF -> SF
@@ -383,7 +424,12 @@ function renderSide(slots, side) {
     const tgt = isLeft ? colSF : colSF + BOX_W;
     addConnector(src, yA, yB, tgt);
     addBox(colSF, sfCenters[k] - BOX_H/2, BOX_W, BOX_H, '', 'tbd');
-    addDateTime(colSF, sfCenters[k] + BOX_H/2 + DT_GAP, BOX_W);
+   addDateTime(
+    colSF,
+    sfCenters[k] + BOX_H/2 + DT_GAP,
+    BOX_W,
+    schedule.semifinals[k]
+);
   }
 
   // SF -> Championship
@@ -402,7 +448,12 @@ renderSide(rightSlots, 'right');
 /* ---- Championship box, centered in the middle ---- */
 const champBoxH = BOX_H * 1.6;
 addBox(colX[4], champCenter - champBoxH/2, BOX_W, champBoxH, 'CHAMPION', 'champion');
-addDateTime(colX[4], champCenter + champBoxH/2 + DT_GAP, BOX_W);
+addDateTime(
+    colX[4],
+    champCenter + champBoxH/2 + DT_GAP,
+    BOX_W,
+    schedule.championship
+);
 
 /* ---- Build SVG lines ---- */
 let svg = '<svg class="lines" width="' + totalWidth + '" height="' + totalHeight + '">';
