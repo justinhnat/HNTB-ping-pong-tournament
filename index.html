@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>HNTB | Tournament Bracket</title>
+<title>HNTB | Ping Pong Tournament Bracket</title>
 <style>
   :root {
     --hntb-black: #000000;
@@ -118,25 +118,14 @@
     position: absolute;
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    font-size: 8px;
+    justify-content: center;
+    font-size: 9px;
     font-weight: 700;
     color: var(--hntb-gray);
     letter-spacing: 0.5px;
     text-transform: uppercase;
     padding: 0 4px;
-  }
-  .date-time .dt-field {
-    display: flex;
-    align-items: center;
-    gap: 3px;
-    flex: 1;
-  }
-  .date-time .dt-blank {
-    flex: 1;
-    height: 1px;
-    background: #cccccc;
-    margin-left: 3px;
+    text-align: center;
   }
   svg.lines line {
     stroke: var(--hntb-black);
@@ -154,7 +143,7 @@
 <div id="header">
   <span class="brand"><span class="chip"></span>HNTB</span>
 </div>
-<div class="subtitle">19-Team Single Elimination Bracket</div>
+<div class="subtitle">19-Team Single Elimination Ping Pong Bracket</div>
 
 <div id="scrollWrap">
   <div id="bracket"></div>
@@ -193,48 +182,124 @@ const teams = [
 ];
 
 /* =========================================================
-   EDIT THIS TOO if you want.
-   Sets the date/time text shown under every box in a round.
-   Everyone who loads this page sees whatever is typed here —
-   there's no separate database, the page IS the source of truth.
+   PLAY-IN WINNERS
+   Once a Play-In game (Game 1, 2, or 3) has been played, type
+   the winner's name here and their Round of 16 box will show
+   the actual name instead of "Winner – Game N".
+   Leave as "" (empty quotes) until the game has been decided.
+   ========================================================= */
+const playInWinners = [
+  "", // Winner of Game 1 (Player 1 vs Player 2)
+  "", // Winner of Game 2 (Player 3 vs Player 4)
+  ""  // Winner of Game 3 (Player 5 vs Player 6)
+];
+
+/* =========================================================
+   ADVANCING WINNERS
+   As each round is completed, type the winning player's name
+   into the matching slot below and it will appear in that
+   matchup's box in the bracket. Leave as "" until known.
+
+   "left" / "right" refer to the left and right sides of the
+   bracket (as you look at the page), each feeding into the
+   Championship box in the middle.
+
+   Quarterfinals: 4 matchups per side (indices 0-3, top to bottom)
+   Semifinals:    2 matchups per side (indices 0-1, top to bottom)
+   Championship:  1 final winner
+   ========================================================= */
+const advancingWinners = {
+  quarterfinals: {
+    left:  ["", "", "", ""],
+    right: ["", "", "", ""]
+  },
+  semifinals: {
+    left:  ["", ""],
+    right: ["", ""]
+  },
+  championship: ""
+};
+
+/* =========================================================
+   SCHEDULE
+   Sets the date/time text shown under EVERY box, one entry per
+   box. Everyone who loads this page sees whatever is typed here
+   — there's no separate database, the page IS the source of
+   truth. Each entry below is commented with exactly which box
+   it belongs to, in the order the boxes are drawn (top to
+   bottom, left side first, then right side). Edit each one to
+   the real date/time for that box.
    ========================================================= */
 const schedule = {
+  // 6 entries: one per team box in the Play-In games (top team,
+  // bottom team, top team, bottom team, top team, bottom team)
   playIn: [
-    "August 12 • 9:00 AM",
-    "August 12 • 9:30 AM",
-    "August 12 • 10:00 AM"
+    "8/15 \u2022 6:00 PM", // Game 1 - top team   (Player 1)
+    "8/15 \u2022 6:00 PM", // Game 1 - bottom team (Player 2)
+    "8/15 \u2022 6:30 PM", // Game 2 - top team   (Player 3)
+    "8/15 \u2022 6:30 PM", // Game 2 - bottom team (Player 4)
+    "8/15 \u2022 7:00 PM", // Game 3 - top team   (Player 5)
+    "8/15 \u2022 7:00 PM"  // Game 3 - bottom team (Player 6)
   ],
 
+  // 16 entries: one per Round of 16 box, left side rows 1-8 top to
+  // bottom, then right side rows 1-8 top to bottom
   roundOf16: [
-    "August 12 • 10:30 AM",
-    "August 12 • 11:00 AM",
-    "August 12 • 11:30 AM",
-    "August 12 • 12:00 PM",
-    "August 12 • 12:30 PM",
-    "August 12 • 1:00 PM",
-    "August 12 • 1:30 PM",
-    "August 12 • 2:00 PM"
+    "8/16 \u2022 9:00 AM",  // Left Row 1
+    "8/16 \u2022 9:00 AM",  // Left Row 2
+    "8/16 \u2022 9:40 AM",  // Left Row 3
+    "8/16 \u2022 9:40 AM",  // Left Row 4
+    "8/16 \u2022 10:20 AM", // Left Row 5
+    "8/16 \u2022 10:20 AM", // Left Row 6
+    "8/16 \u2022 11:00 AM", // Left Row 7
+    "8/16 \u2022 11:00 AM", // Left Row 8
+    "8/16 \u2022 9:00 AM",  // Right Row 1
+    "8/16 \u2022 9:00 AM",  // Right Row 2
+    "8/16 \u2022 9:40 AM",  // Right Row 3
+    "8/16 \u2022 9:40 AM",  // Right Row 4
+    "8/16 \u2022 10:20 AM", // Right Row 5
+    "8/16 \u2022 10:20 AM", // Right Row 6
+    "8/16 \u2022 11:00 AM", // Right Row 7
+    "8/16 \u2022 11:00 AM"  // Right Row 8
   ],
 
+  // 8 entries: one per Quarterfinal box, left QF 1-4 top to bottom,
+  // then right QF 1-4 top to bottom
   quarterfinals: [
-    "August 12 • 3:00 PM",
-    "August 12 • 3:30 PM",
-    "August 12 • 4:00 PM",
-    "August 12 • 4:30 PM"
+    "8/16 \u2022 1:00 PM", // Left QF 1
+    "8/16 \u2022 1:40 PM", // Left QF 2
+    "8/16 \u2022 2:20 PM", // Left QF 3
+    "8/16 \u2022 3:00 PM", // Left QF 4
+    "8/16 \u2022 1:00 PM", // Right QF 1
+    "8/16 \u2022 1:40 PM", // Right QF 2
+    "8/16 \u2022 2:20 PM", // Right QF 3
+    "8/16 \u2022 3:00 PM"  // Right QF 4
   ],
 
+  // 4 entries: one per Semifinal box, left SF 1-2 top to bottom,
+  // then right SF 1-2 top to bottom
   semifinals: [
-    "August 13 • 11:00 AM",
-    "August 13 • 11:30 AM"
+    "8/17 \u2022 11:00 AM", // Left SF 1
+    "8/17 \u2022 11:40 AM", // Left SF 2
+    "8/17 \u2022 11:00 AM", // Right SF 1
+    "8/17 \u2022 11:40 AM"  // Right SF 2
   ],
 
-  championship: "August 13 • 12:00 PM"
+  // 1 entry: the Championship box
+  championship: [
+    "8/17 \u2022 5:00 PM"
+  ]
 };
+
+// Tracks which entry of each schedule array to use next as boxes
+// are drawn, so every box gets its own line without you having to
+// pass an index in manually.
+const scheduleCursor = { playIn: 0, roundOf16: 0, quarterfinals: 0, semifinals: 0, championship: 0 };
 
 /* ========================= LAYOUT CONSTANTS ========================= */
 const BOX_W = 170;
 const BOX_H = 40;
-const DT_H = 12;             // height of the blank date/time strip under each box
+const DT_H = 12;             // height of the date/time strip under each matchup
 const DT_GAP = 3;            // gap between a box and its date/time strip
 const COL_GAP = 70;          // empty space between columns used for connectors
 const ROW_SPACING = 110;     // vertical distance between adjacent R16 slot centers (per side)
@@ -313,12 +378,14 @@ function addBox(x, y, w, h, text, extraClass) {
           'px; width:' + w + 'px; height:' + h + 'px;">' + text + '</div>';
 }
 
-function addDateTime(x, y, w, text = "") {
-  html +=
-    '<div class="date-time" style="left:' + x + 'px; top:' + y +
-    'px; width:' + w + 'px; justify-content:center;">' +
-    text +
-    '</div>';
+// One date/time strip per BOX. Pulls the next entry in order from
+// the matching array in the schedule object above.
+function addDateTime(x, y, w, roundKey) {
+  const list = schedule[roundKey];
+  const idx = scheduleCursor[roundKey]++;
+  const text = list[idx] !== undefined ? list[idx] : list[list.length - 1];
+  html += '<div class="date-time" style="left:' + x + 'px; top:' + y + 'px; width:' + w +
+          'px; height:' + DT_H + 'px;">' + text + '</div>';
 }
 
 function addLabel(colIndex, text) {
@@ -359,7 +426,7 @@ function renderSide(slots, side) {
   const colSF   = isLeft ? colX[3] : colX[5];
   const colCH   = colX[4];
 
-  // Play-in games for this side
+  // Play-in games for this side (one date/time per game, not per team)
   slots.forEach((slot, rowIdx) => {
     if (slot.type !== 'playin') return;
     const pair = playInPairs[slot.gameIndex];
@@ -371,33 +438,29 @@ function renderSide(slots, side) {
             'px; width:' + BOX_W + 'px; text-align:center;">Game ' + (slot.gameIndex + 1) + '</div>';
 
     addBox(colPI, yA - BOX_H/2, BOX_W, BOX_H, teams[pair[0]]);
+    addDateTime(colPI, yA + BOX_H/2 + DT_GAP, BOX_W, 'playIn');
     addBox(colPI, yB - BOX_H/2, BOX_W, BOX_H, teams[pair[1]]);
-   addDateTime(
-    colPI,
-    yB + BOX_H/2 + DT_GAP,
-    BOX_W,
-    schedule.playIn[slot.gameIndex]
-);
+    addDateTime(colPI, yB + BOX_H/2 + DT_GAP, BOX_W, 'playIn');
 
     const src = isLeft ? colPI + BOX_W : colPI;
     const tgt = isLeft ? colR16 : colR16 + BOX_W;
     addConnector(src, yA, yB, tgt);
   });
 
-  // Round of 16 boxes
+  // Round of 16 boxes, each with its own date/time strip underneath
   slots.forEach((slot, rowIdx) => {
     const y = rowCenters[rowIdx];
     if (slot.type === 'bye') {
       addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, slot.name);
     } else {
-      addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, 'Winner &ndash; Game ' + (slot.gameIndex + 1), 'playin-winner');
+      const winnerName = playInWinners[slot.gameIndex];
+      if (winnerName) {
+        addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, winnerName);
+      } else {
+        addBox(colR16, y - BOX_H/2, BOX_W, BOX_H, 'Winner &ndash; Game ' + (slot.gameIndex + 1), 'playin-winner');
+      }
     }
-   addDateTime(
-    colR16,
-    y + BOX_H/2 + DT_GAP,
-    BOX_W,
-    schedule.roundOf16[rowIdx + (isLeft ? 0 : 4)]
-);
+    addDateTime(colR16, y + BOX_H/2 + DT_GAP, BOX_W, 'roundOf16');
   });
 
   // R16 -> QF
@@ -407,13 +470,10 @@ function renderSide(slots, side) {
     const src = isLeft ? colR16 + BOX_W : colR16;
     const tgt = isLeft ? colQF : colQF + BOX_W;
     addConnector(src, yA, yB, tgt);
-    addBox(colQF, qfCenters[j] - BOX_H/2, BOX_W, BOX_H, '', 'tbd');
- addDateTime(
-    colQF,
-    qfCenters[j] + BOX_H/2 + DT_GAP,
-    BOX_W,
-    schedule.quarterfinals[j]
-);
+
+    const qfName = advancingWinners.quarterfinals[side][j];
+    addBox(colQF, qfCenters[j] - BOX_H/2, BOX_W, BOX_H, qfName || '', qfName ? '' : 'tbd');
+    addDateTime(colQF, qfCenters[j] + BOX_H/2 + DT_GAP, BOX_W, 'quarterfinals');
   }
 
   // QF -> SF
@@ -423,13 +483,10 @@ function renderSide(slots, side) {
     const src = isLeft ? colQF + BOX_W : colQF;
     const tgt = isLeft ? colSF : colSF + BOX_W;
     addConnector(src, yA, yB, tgt);
-    addBox(colSF, sfCenters[k] - BOX_H/2, BOX_W, BOX_H, '', 'tbd');
-   addDateTime(
-    colSF,
-    sfCenters[k] + BOX_H/2 + DT_GAP,
-    BOX_W,
-    schedule.semifinals[k]
-);
+
+    const sfName = advancingWinners.semifinals[side][k];
+    addBox(colSF, sfCenters[k] - BOX_H/2, BOX_W, BOX_H, sfName || '', sfName ? '' : 'tbd');
+    addDateTime(colSF, sfCenters[k] + BOX_H/2 + DT_GAP, BOX_W, 'semifinals');
   }
 
   // SF -> Championship
@@ -447,13 +504,9 @@ renderSide(rightSlots, 'right');
 
 /* ---- Championship box, centered in the middle ---- */
 const champBoxH = BOX_H * 1.6;
-addBox(colX[4], champCenter - champBoxH/2, BOX_W, champBoxH, 'CHAMPION', 'champion');
-addDateTime(
-    colX[4],
-    champCenter + champBoxH/2 + DT_GAP,
-    BOX_W,
-    schedule.championship
-);
+const champName = advancingWinners.championship;
+addBox(colX[4], champCenter - champBoxH/2, BOX_W, champBoxH, champName || 'CHAMPION', 'champion');
+addDateTime(colX[4], champCenter + champBoxH/2 + DT_GAP, BOX_W, 'championship');
 
 /* ---- Build SVG lines ---- */
 let svg = '<svg class="lines" width="' + totalWidth + '" height="' + totalHeight + '">';
