@@ -189,9 +189,9 @@ const teams = [
    Leave as "" (empty quotes) until the game has been decided.
    ========================================================= */
 const playInWinners = [
-  "m", // Winner of Game 1 (Player 1 vs Player 2)
-  "n", // Winner of Game 2 (Player 3 vs Player 4)
-  "o"  // Winner of Game 3 (Player 5 vs Player 6)
+  "", // Winner of Game 1 (Player 1 vs Player 2)
+  "", // Winner of Game 2 (Player 3 vs Player 4)
+  ""  // Winner of Game 3 (Player 5 vs Player 6)
 ];
 
 /* =========================================================
@@ -210,12 +210,12 @@ const playInWinners = [
    ========================================================= */
 const advancingWinners = {
   quarterfinals: {
-    left:  ["a", "b", "c", "d"],
-    right: ["e", "f", "g", "h"]
+    left:  ["", "", "", ""],
+    right: ["", "", "", ""]
   },
   semifinals: {
-    left:  ["i", "j"],
-    right: ["k", "l"]
+    left:  ["", ""],
+    right: ["", ""]
   },
   championship: ""
 };
@@ -234,12 +234,12 @@ const schedule = {
   // 6 entries: one per team box in the Play-In games (top team,
   // bottom team, top team, bottom team, top team, bottom team)
   playIn: [
-    "8/11 \u2022 6:00 PM", // Game 1 - top team   (Player 1)
-    "8/11 \u2022 6:00 PM", // Game 1 - bottom team (Player 2)
-    "8/11 \u2022 6:30 PM", // Game 2 - top team   (Player 3)
-    "8/11 \u2022 6:30 PM", // Game 2 - bottom team (Player 4)
-    "8/11 \u2022 7:00 PM", // Game 3 - top team   (Player 5)
-    "8/11 \u2022 7:00 PM"  // Game 3 - bottom team (Player 6)
+    "8/11 \u2022 9:00 AM", // Game 1 - top team   (Player 1)
+    "8/11 \u2022 9:00 AM", // Game 1 - bottom team (Player 2)
+    "8/11 \u2022 9:30 AM", // Game 2 - top team   (Player 3)
+    "8/11 \u2022 9:30 AM", // Game 2 - bottom team (Player 4)
+    "8/11 \u2022 10:00 AM", // Game 3 - top team   (Player 5)
+    "8/11 \u2022 10:00 AM"  // Game 3 - bottom team (Player 6)
   ],
 
   // 16 entries: one per Round of 16 box, left side rows 1-8 top to
