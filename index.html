@@ -342,6 +342,68 @@ for (let i = 0; i < 16; i++) {
 const leftSlots = combinedSlots.slice(0, 8);   // left side, rows 0-7
 const rightSlots = combinedSlots.slice(8, 16); // right side, rows 0-7
 
+/* =========================================================
+   BRACKET GUIDE (browser console cheat-sheet)
+   You do NOT need to edit this. It reads whatever you've
+   typed into `teams`, `playInWinners`, and `advancingWinners`
+   above, and prints a plain-English list of exactly who is
+   playing whom in every box, all the way up to the Champion.
+
+   HOW TO USE IT:
+   1. Open this file in a browser.
+   2. Right-click the page -> Inspect -> Console tab (or F12).
+   3. Read the printed list to see which real names belong in
+      which slot of `advancingWinners` before you type them in.
+   4. Every time you edit teams / playInWinners / advancingWinners
+      and refresh the page, this list updates automatically.
+   ========================================================= */
+function slotLabel(slot) {
+  if (slot.type === 'bye') return slot.name;
+  const winner = playInWinners[slot.gameIndex];
+  return winner || ('Winner of Play-In Game ' + (slot.gameIndex + 1));
+}
+
+function printBracketGuide() {
+  console.log('%c=== HNTB BRACKET GUIDE ===', 'font-weight:bold;color:#F26522;font-size:13px;');
+
+  console.log('--- Play-In Games ---');
+  playInPairs.forEach((pair, i) => {
+    console.log('Game ' + (i + 1) + ':  ' + teams[pair[0]] + '  vs  ' + teams[pair[1]] +
+      '   -> type winner into playInWinners[' + i + ']');
+  });
+
+  ['left', 'right'].forEach(side => {
+    const slots = side === 'left' ? leftSlots : rightSlots;
+    const label = side.toUpperCase();
+
+    console.log('--- ' + label + ' SIDE: Quarterfinal matchups (Round of 16 winners) ---');
+    for (let j = 0; j < 4; j++) {
+      const a = slotLabel(slots[2 * j]);
+      const b = slotLabel(slots[2 * j + 1]);
+      console.log(label + ' QF ' + (j + 1) + ':  ' + a + '  vs  ' + b +
+        '   -> type winner into advancingWinners.quarterfinals.' + side + '[' + j + ']');
+    }
+
+    console.log('--- ' + label + ' SIDE: Semifinal matchups (Quarterfinal winners) ---');
+    for (let k = 0; k < 2; k++) {
+      const a = advancingWinners.quarterfinals[side][2 * k] || '(TBD - ' + label + ' QF ' + (2 * k + 1) + ' winner)';
+      const b = advancingWinners.quarterfinals[side][2 * k + 1] || '(TBD - ' + label + ' QF ' + (2 * k + 2) + ' winner)';
+      console.log(label + ' SF ' + (k + 1) + ':  ' + a + '  vs  ' + b +
+        '   -> type winner into advancingWinners.semifinals.' + side + '[' + k + ']');
+    }
+  });
+
+  const leftFinalist = advancingWinners.semifinals.left[0] || '(TBD - Left SF 1 winner)';
+  const leftFinalist2 = advancingWinners.semifinals.left[1] || '(TBD - Left SF 2 winner)';
+  const rightFinalist = advancingWinners.semifinals.right[0] || '(TBD - Right SF 1 winner)';
+  const rightFinalist2 = advancingWinners.semifinals.right[1] || '(TBD - Right SF 2 winner)';
+
+  console.log('--- CHAMPIONSHIP ---');
+  console.log('Left side:  ' + leftFinalist + '  vs  ' + leftFinalist2);
+  console.log('Right side:  ' + rightFinalist + '  vs  ' + rightFinalist2);
+  console.log('Overall champion -> type winner into advancingWinners.championship');
+}
+
 /* ========================= COORDINATES ========================= */
 // 9 columns: PI-L, R16-L, QF-L, SF-L, CHAMP, SF-R, QF-R, R16-R, PI-R
 const STEP = BOX_W + COL_GAP;
@@ -516,6 +578,10 @@ lines.forEach(l => {
 svg += '</svg>';
 
 bracket.innerHTML = svg + html;
+
+// Prints the current matchups/who-plays-who to the browser console
+// (F12 -> Console) so you know exactly what to type in above.
+printBracketGuide();
 </script>
 
 </body>
