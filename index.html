@@ -568,7 +568,7 @@ renderSide(rightSlots, 'right');
 const champBoxH = BOX_H * 1.6;
 const champName = advancingWinners.championship;
 addBox(colX[4], champCenter - champBoxH/2, BOX_W, champBoxH, champName || 'CHAMPION', 'champion');
-// addDateTime(colX[4], champCenter + champBoxH/2 + DT_GAP, BOX_W, 'championship');
+addDateTime(colX[4], champCenter + champBoxH/2 + DT_GAP, BOX_W, 'championship');
 
 /* ---- Build SVG lines ---- */
 let svg = '<svg class="lines" width="' + totalWidth + '" height="' + totalHeight + '">';
